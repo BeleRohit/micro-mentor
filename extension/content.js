@@ -3,6 +3,45 @@ console.log("🔥 Micro Mentor loaded");
 let mentorButton = null;
 let mentorBubble = null;
 let lastSelectionText = "";
+let bubbleAnchor = { left: "0px", top: "0px" };
+
+document.addEventListener("keydown", (e) => {
+    if (e.altKey && e.key.toLowerCase() === "m") {
+        const selection = window.getSelection();
+        const text = selection.toString().trim();
+
+        if (!text) return;
+
+        lastSelectionText = text;
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+
+        bubbleAnchor.left = rect.right + window.scrollX + "px";
+        bubbleAnchor.top = rect.bottom + window.scrollY + "px";
+
+        showMentorBubble("Thinking...");
+
+        fetch("http://localhost:8000/mentor", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text })
+        })
+        .then(res => res.json())
+        .then(data => updateBubble(data.question))
+        .catch(() => updateBubble("Mentor is unavailable."));
+    }
+});
+
+document.addEventListener("mousedown", (e) => {
+    if (
+        mentorBubble && !mentorBubble.contains(e.target) &&
+        mentorButton && !mentorButton.contains(e.target)
+    ) {
+        mentorBubble.remove();
+        mentorBubble = null;
+    }
+});
 
 document.addEventListener("mouseup", (e) => {
     if (mentorButton && mentorButton.contains(e.target)) return;
@@ -38,6 +77,9 @@ document.addEventListener("mouseup", (e) => {
     mentorButton.style.zIndex = "2147483647";
     mentorButton.style.userSelect = "none";
 
+    bubbleAnchor.left = mentorButton.style.left;
+    bubbleAnchor.top = mentorButton.style.top;
+
     mentorButton.addEventListener("mousedown", (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -58,12 +100,8 @@ document.addEventListener("mouseup", (e) => {
             body: JSON.stringify({ text: lastSelectionText })
         })
             .then(res => res.json())
-            .then(data => {
-                updateBubble(data.question);
-            })
-            .catch(() => {
-                updateBubble("Mentor is temporarily unavailable.");
-            });
+            .then(data => updateBubble(data.question))
+            .catch(() => updateBubble("Mentor is temporarily unavailable."));
     });
 
     document.body.appendChild(mentorButton);
@@ -83,8 +121,8 @@ function showMentorBubble(text) {
     mentorBubble.textContent = text;
 
     mentorBubble.style.position = "absolute";
-    mentorBubble.style.left = mentorButton.style.left;
-    mentorBubble.style.top = parseInt(mentorButton.style.top) + 40 + "px";
+    mentorBubble.style.left = bubbleAnchor.left;
+    mentorBubble.style.top = parseInt(bubbleAnchor.top) + 40 + "px";
     mentorBubble.style.background = "#111";
     mentorBubble.style.color = "white";
     mentorBubble.style.padding = "10px 14px";
