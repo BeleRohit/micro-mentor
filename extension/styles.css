@@ -1,0 +1,10 @@
+.micro-mentor-bubble {
+  position: absolute;
+  background: #111;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  max-width: 240px;
+  z-index: 9999;
+}
