@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Micro Mentor",
+  "description": "AI-powered Socratic mentor overlay",
+  "version": "0.1",
+
+  "permissions": ["activeTab", "scripting"],
+
+  "host_permissions": ["http://localhost:8000/*"],
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+}
